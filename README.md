@@ -1,11 +1,11 @@
-# Agora
+# FactorAtlas
 
-Portfolio intelligence platform for stock portfolio analysis, built as a Next.js frontend with a FastAPI backend.
+FactorAtlas is a portfolio intelligence platform for stock portfolio analysis, built as a Next.js frontend with a FastAPI backend.
 
 The current repo contains:
 
-- a typed frontend scaffold in [`frontend/`](/Users/ricedevice/Code/agora/frontend)
-- a FastAPI backend scaffold in [`backend/`](/Users/ricedevice/Code/agora/backend)
+- a typed frontend scaffold in [`frontend/`](./frontend)
+- a FastAPI backend scaffold in [`backend/`](./backend)
 - planning and architecture docs at the repo root
 
 This is an early-stage implementation. It can run locally, but some pieces are still scaffold-level and a few setup steps are manual.
@@ -13,7 +13,7 @@ This is an early-stage implementation. It can run locally, but some pieces are s
 ## Repo Structure
 
 ```text
-agora/
+factoratlas/
   backend/
   frontend/
   design.md
@@ -65,15 +65,15 @@ You need:
 If you already have Postgres installed locally, create the DB:
 
 ```bash
-createdb agora
+createdb factoratlas
 ```
 
 If you prefer Docker:
 
 ```bash
-docker run --name agora-postgres \
+docker run --name factoratlas-postgres \
   -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=agora \
+  -e POSTGRES_DB=factoratlas \
   -p 5432:5432 \
   -d postgres:16
 ```
@@ -81,7 +81,7 @@ docker run --name agora-postgres \
 The backend default connection string expects:
 
 ```text
-postgresql://postgres:postgres@localhost:5432/agora
+postgresql://postgres:postgres@localhost:5432/factoratlas
 ```
 
 ### 2. Configure the backend
@@ -218,11 +218,11 @@ npm run lint
 
 ## Key Docs
 
-- Product spec: [design.md](/Users/ricedevice/Code/agora/design.md)
-- Execution plan: [implementation-plan.md](/Users/ricedevice/Code/agora/implementation-plan.md)
-- Sprint plan: [sprint-backlog.md](/Users/ricedevice/Code/agora/sprint-backlog.md)
-- Scaffold plan: [repo-scaffold-plan.md](/Users/ricedevice/Code/agora/repo-scaffold-plan.md)
-- Architecture: [system-architecture.md](/Users/ricedevice/Code/agora/system-architecture.md)
+- Product spec: [design.md](./design.md)
+- Execution plan: [implementation-plan.md](./implementation-plan.md)
+- Sprint plan: [sprint-backlog.md](./sprint-backlog.md)
+- Scaffold plan: [repo-scaffold-plan.md](./repo-scaffold-plan.md)
+- Architecture: [system-architecture.md](./system-architecture.md)
 
 ## Recommended Next Improvements
 

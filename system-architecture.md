@@ -1,4 +1,4 @@
-# System Architecture
+# FactorAtlas System Architecture
 
 ## Objective
 

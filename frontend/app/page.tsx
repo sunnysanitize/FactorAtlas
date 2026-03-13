@@ -40,7 +40,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-6 py-4 flex items-center justify-between">
-        <span className="text-lg font-bold tracking-wider">AGORA</span>
+        <span className="text-lg font-bold tracking-wider">FACTORATLAS</span>
         <Link href="/dashboard">
           <Button variant="outline" size="sm">Open Dashboard</Button>
         </Link>
@@ -78,7 +78,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="border-t border-border px-6 py-6 text-center text-xs text-muted-foreground">
-        Agora — Portfolio Intelligence Platform
+        FactorAtlas — Portfolio Intelligence Platform
       </footer>
     </div>
   );

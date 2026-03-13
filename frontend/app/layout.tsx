@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Agora - Portfolio Intelligence Platform",
+  title: "FactorAtlas - Portfolio Intelligence Platform",
   description:
     "A portfolio intelligence platform combining quant analytics, event relevance, and AI explanations.",
 };

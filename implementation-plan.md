@@ -1,4 +1,4 @@
-# Implementation Plan
+# FactorAtlas Implementation Plan
 
 ## Goal
 

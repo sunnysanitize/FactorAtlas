@@ -1,4 +1,4 @@
-# Repo Scaffold Plan
+# FactorAtlas Repo Scaffold Plan
 
 ## Goal
 
@@ -14,7 +14,7 @@ This scaffold plan is optimized for:
 ## Top-Level Structure
 
 ```text
-agora/
+factoratlas/
   frontend/
   backend/
   docs/

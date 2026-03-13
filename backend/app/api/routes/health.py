@@ -5,4 +5,4 @@ router = APIRouter(tags=["health"])
 
 @router.get("/health")
 def health_check():
-    return {"status": "ok", "service": "agora-backend"}
+    return {"status": "ok", "service": "factoratlas-backend"}

@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     APP_ENV: str = "development"
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/agora"
+    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/factoratlas"
     GEMINI_API_KEY: str = ""
     NEWS_API_KEY: str = ""
     FINNHUB_API_KEY: str = ""

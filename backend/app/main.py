@@ -7,7 +7,7 @@ from app.core.logging import setup_logging
 setup_logging()
 
 app = FastAPI(
-    title="Agora - Portfolio Intelligence Platform",
+    title="FactorAtlas - Portfolio Intelligence Platform",
     description="A portfolio intelligence platform combining quant analytics, event relevance, and AI explanations.",
     version="0.1.0",
 )

@@ -1,4 +1,6 @@
-# Palantir-Inspired Portfolio Intelligence Platform
+# FactorAtlas
+
+## Palantir-Inspired Portfolio Intelligence Platform
 
 ## Full Build Spec for Codex
 

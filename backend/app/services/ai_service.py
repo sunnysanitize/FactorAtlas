@@ -22,7 +22,7 @@ def _get_model():
     return genai.GenerativeModel("gemini-2.0-flash")
 
 
-SYSTEM_PROMPT = """You are a portfolio intelligence analyst for the Agora platform.
+SYSTEM_PROMPT = """You are a portfolio intelligence analyst for the FactorAtlas platform.
 
 RULES:
 - You MUST only interpret the supplied analytics data. Never invent numbers.

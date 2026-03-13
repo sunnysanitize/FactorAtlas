@@ -14,7 +14,7 @@ from app.services.theme_data import TICKER_SECTORS, TICKER_THEMES
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_USER_EMAIL = "demo@agora.dev"
+DEFAULT_USER_EMAIL = "demo@factoratlas.dev"
 
 
 def get_or_create_user(db: Session, email: str | None = None) -> User:

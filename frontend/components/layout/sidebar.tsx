@@ -42,7 +42,7 @@ export function Sidebar({ portfolioId }: { portfolioId: string }) {
       <div className="flex items-center justify-between p-4 border-b border-border">
         {!collapsed && (
           <Link href="/dashboard" className="text-sm font-semibold tracking-wide text-foreground">
-            AGORA
+            FACTORATLAS
           </Link>
         )}
         <Button
