@@ -112,6 +112,68 @@ export interface ThemeExposureResponse {
   theme_exposure: ThemeExposureItem[];
 }
 
+export interface FactorExposureItem {
+  factor_key: string;
+  label: string;
+  exposure: number;
+  intensity: string;
+}
+
+export interface HoldingFactorItem {
+  factor_key: string;
+  label: string;
+  score: number;
+}
+
+export interface HoldingFactorExposure {
+  ticker: string;
+  weight: number;
+  top_factors: HoldingFactorItem[];
+}
+
+export interface FactorStabilityItem {
+  factor_key: string;
+  label: string;
+  stability_score: number;
+}
+
+export interface FactorExposureResponse {
+  summary: FactorExposureItem[];
+  holdings: HoldingFactorExposure[];
+  alerts: string[];
+  stability: FactorStabilityItem[];
+}
+
+export interface LookthroughUnderlying {
+  ticker: string;
+  company_name: string;
+  direct_weight: number;
+  indirect_weight: number;
+  total_weight: number;
+  sector: string | null;
+  themes: string[];
+}
+
+export interface LookthroughConcentrationItem {
+  name: string;
+  weight: number;
+}
+
+export interface LookthroughOverlapItem {
+  ticker: string;
+  direct_weight: number;
+  indirect_weight: number;
+  overlap_score: number;
+}
+
+export interface LookthroughResponse {
+  top_underlyings: LookthroughUnderlying[];
+  sector_concentration: LookthroughConcentrationItem[];
+  theme_concentration: LookthroughConcentrationItem[];
+  overlap: LookthroughOverlapItem[];
+  redundancy_score: number;
+}
+
 export interface GraphNode {
   id: string;
   label: string;

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.routes import ai, analytics, auth, events, graph, health, portfolios, scenarios
+from app.api.routes import ai, analytics, auth, events, factors, graph, health, portfolios, scenarios
 
 api_router = APIRouter()
 
@@ -12,3 +12,4 @@ api_router.include_router(events.router)
 api_router.include_router(scenarios.router)
 api_router.include_router(ai.router)
 api_router.include_router(graph.router)
+api_router.include_router(factors.router)
