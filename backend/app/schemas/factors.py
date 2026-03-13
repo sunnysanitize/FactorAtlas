@@ -60,4 +60,6 @@ class LookthroughResponse(BaseModel):
     sector_concentration: list[ConcentrationItem]
     theme_concentration: list[ConcentrationItem]
     overlap: list[OverlapItem]
+    overlap_labels: list[str]
+    overlap_matrix: list[list[float]]
     redundancy_score: float

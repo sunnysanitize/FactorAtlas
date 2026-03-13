@@ -28,3 +28,25 @@ class NewsEventResponse(BaseModel):
 class EventsListResponse(BaseModel):
     events: list[NewsEventResponse]
     total: int
+
+
+class EventPathwayResponse(BaseModel):
+    path_type: str
+    holding: str
+    via: list[str]
+    impact_score: float
+    explanation: str
+
+
+class EventPropagationItemResponse(BaseModel):
+    event_id: str
+    title: str
+    event_category: str | None
+    direct_count: int
+    indirect_count: int
+    blast_radius_score: float
+    pathways: list[EventPathwayResponse]
+
+
+class EventPropagationResponse(BaseModel):
+    events: list[EventPropagationItemResponse]

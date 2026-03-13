@@ -171,6 +171,8 @@ export interface LookthroughResponse {
   sector_concentration: LookthroughConcentrationItem[];
   theme_concentration: LookthroughConcentrationItem[];
   overlap: LookthroughOverlapItem[];
+  overlap_labels: string[];
+  overlap_matrix: number[][];
   redundancy_score: number;
 }
 
@@ -215,6 +217,28 @@ export interface NewsEvent {
 export interface EventsListResponse {
   events: NewsEvent[];
   total: number;
+}
+
+export interface EventPropagationPathway {
+  path_type: string;
+  holding: string;
+  via: string[];
+  impact_score: number;
+  explanation: string;
+}
+
+export interface EventPropagationItem {
+  event_id: string;
+  title: string;
+  event_category: string | null;
+  direct_count: number;
+  indirect_count: number;
+  blast_radius_score: number;
+  pathways: EventPropagationPathway[];
+}
+
+export interface EventPropagationResponse {
+  events: EventPropagationItem[];
 }
 
 export interface ScenarioShock {

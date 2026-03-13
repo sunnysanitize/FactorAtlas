@@ -6,6 +6,7 @@ import { SectionHeader } from "@/components/cards/section-header";
 import { KpiCard } from "@/components/cards/kpi-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { OverlapHeatmap } from "@/components/charts/overlap-heatmap";
 import { LoadingState } from "@/components/states/loading-state";
 import { ErrorState } from "@/components/states/error-state";
 import { EmptyState } from "@/components/states/empty-state";
@@ -224,6 +225,10 @@ export default function FactorsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {lookthrough.overlap_labels.length > 1 && (
+        <OverlapHeatmap labels={lookthrough.overlap_labels} matrix={lookthrough.overlap_matrix} />
+      )}
     </div>
   );
 }

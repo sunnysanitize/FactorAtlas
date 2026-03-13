@@ -104,11 +104,13 @@ def compute_factor_intelligence(holdings: list[Holding], weights: dict[str, floa
 def compute_lookthrough_exposure(holdings: list[Holding], weights: dict[str, float]) -> dict:
     underlying = defaultdict(lambda: {"direct_weight": 0.0, "indirect_weight": 0.0, "company_name": None, "sector": None, "themes": set()})
     overlap = []
+    wrapper_underlyings: dict[str, dict[str, float]] = {}
 
     for holding in holdings:
         ticker = holding.ticker.upper()
         weight = weights.get(holding.ticker, 0.0)
         constituents = ETF_CONSTITUENTS.get(ticker)
+        wrapper_underlyings[ticker] = {}
         if constituents:
             for constituent in constituents:
                 constituent_ticker = str(constituent["ticker"])
@@ -118,12 +120,14 @@ def compute_lookthrough_exposure(holdings: list[Holding], weights: dict[str, flo
                 row["company_name"] = constituent.get("company_name") or row["company_name"]
                 row["sector"] = constituent.get("sector") or row["sector"]
                 row["themes"].update(constituent.get("themes", []))
+                wrapper_underlyings[ticker][constituent_ticker] = indirect_weight
         else:
             row = underlying[ticker]
             row["direct_weight"] += weight
             row["company_name"] = holding.company_name or row["company_name"]
             row["sector"] = holding.sector or row["sector"]
             row["themes"].update(TICKER_THEMES.get(ticker, []))
+            wrapper_underlyings[ticker][ticker] = weight
 
     names = []
     sector_totals = defaultdict(float)
@@ -154,6 +158,21 @@ def compute_lookthrough_exposure(holdings: list[Holding], weights: dict[str, flo
     names.sort(key=lambda item: item["total_weight"], reverse=True)
     overlap.sort(key=lambda item: item["overlap_score"], reverse=True)
 
+    overlap_labels = list(wrapper_underlyings.keys())
+    overlap_matrix: list[list[float]] = []
+    for source in overlap_labels:
+        row = []
+        source_map = wrapper_underlyings[source]
+        for target in overlap_labels:
+            target_map = wrapper_underlyings[target]
+            shared = sum(
+                min(source_map.get(name, 0.0), target_map.get(name, 0.0))
+                for name in set(source_map) | set(target_map)
+            )
+            denom = max(sum(source_map.values()), sum(target_map.values()), 1e-9)
+            row.append(round(shared / denom, 4))
+        overlap_matrix.append(row)
+
     return {
         "top_underlyings": names[:12],
         "sector_concentration": [
@@ -165,5 +184,7 @@ def compute_lookthrough_exposure(holdings: list[Holding], weights: dict[str, flo
             for theme, weight in sorted(theme_totals.items(), key=lambda item: item[1], reverse=True)[:8]
         ],
         "overlap": overlap[:10],
+        "overlap_labels": overlap_labels,
+        "overlap_matrix": overlap_matrix,
         "redundancy_score": round(sum(item["overlap_score"] for item in overlap), 4),
     }
