@@ -7,16 +7,17 @@ import { EventTable } from "@/components/tables/event-table";
 import { LoadingState } from "@/components/states/loading-state";
 import { ErrorState } from "@/components/states/error-state";
 import { EmptyState } from "@/components/states/empty-state";
-import { usePolling } from "@/lib/hooks/use-polling";
-import { getEvents } from "@/lib/api/events";
+import { Button } from "@/components/ui/button";
+import { getEvents, refreshEvents } from "@/lib/api/events";
 import type { NewsEvent } from "@/lib/types/api";
-import { Newspaper } from "lucide-react";
+import { Newspaper, RefreshCw } from "lucide-react";
 
 export default function EventsPage() {
   const params = useParams();
   const portfolioId = params.id as string;
   const [events, setEvents] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
   const load = async (background = false) => {
@@ -38,17 +39,36 @@ export default function EventsPage() {
     }
   };
 
-  usePolling(() => load(events.length > 0), { enabled: Boolean(portfolioId) });
+  const refresh = async () => {
+    setRefreshing(true);
+    setError("");
+    try {
+      const data = await refreshEvents(portfolioId);
+      setEvents(data.events);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to refresh events");
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   if (loading) return <LoadingState message="Fetching events..." />;
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (events.length === 0) {
     return (
       <div className="space-y-6">
-        <SectionHeader title="Event Intelligence" />
+        <SectionHeader
+          title="Event Intelligence"
+          actions={
+            <Button size="sm" variant="outline" onClick={refresh} disabled={refreshing}>
+              <RefreshCw className="h-4 w-4 mr-1" />
+              {refreshing ? "Refreshing..." : "Refresh News"}
+            </Button>
+          }
+        />
         <EmptyState
           title="No events found"
-          description="Events will appear when a news API key is configured and articles are available for your holdings."
+          description="News is no longer fetched automatically. Use Refresh News only when you want to spend free-tier news requests."
           icon={<Newspaper className="h-12 w-12" />}
         />
       </div>
@@ -60,6 +80,12 @@ export default function EventsPage() {
       <SectionHeader
         title="Event Intelligence"
         description="Recent events ranked by relevance to your portfolio"
+        actions={
+          <Button size="sm" variant="outline" onClick={refresh} disabled={refreshing}>
+            <RefreshCw className="h-4 w-4 mr-1" />
+            {refreshing ? "Refreshing..." : "Refresh News"}
+          </Button>
+        }
       />
       <EventTable events={events} />
     </div>

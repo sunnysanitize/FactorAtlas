@@ -19,6 +19,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new ApiError(res.status, body.detail || res.statusText);
   }
 
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
   return res.json();
 }
 
@@ -42,4 +46,15 @@ export function postForm<T>(path: string, formData: FormData): Promise<T> {
     }
     return res.json();
   });
+}
+
+export function put<T>(path: string, body?: unknown): Promise<T> {
+  return request<T>(path, {
+    method: "PUT",
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+
+export function del(path: string): Promise<void> {
+  return request<void>(path, { method: "DELETE" });
 }

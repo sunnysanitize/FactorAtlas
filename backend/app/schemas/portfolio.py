@@ -47,6 +47,34 @@ class HoldingResponse(BaseModel):
     updated_at: datetime
 
 
+class HoldingUpdate(BaseModel):
+    ticker: str
+    shares: float
+    average_cost: float
+    company_name: str | None = None
+    sector: str | None = None
+    primary_theme: str | None = None
+
+    @field_validator("ticker")
+    @classmethod
+    def normalize_ticker(cls, v: str) -> str:
+        return v.strip().upper()
+
+    @field_validator("shares")
+    @classmethod
+    def shares_positive(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("shares must be positive")
+        return v
+
+    @field_validator("average_cost")
+    @classmethod
+    def cost_positive(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("average_cost must be positive")
+        return v
+
+
 class PortfolioCreate(BaseModel):
     name: str
     user_email: str | None = None

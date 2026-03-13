@@ -46,7 +46,7 @@ export default function HoldingsPage() {
     <div className="space-y-6">
       <SectionHeader title="Holdings" description={`${holdings.length} positions`} />
       <AddHoldingForm portfolioId={portfolioId} onSuccess={load} />
-      <HoldingsTable holdings={holdings} />
+      <HoldingsTable holdings={holdings} portfolioId={portfolioId} onChanged={load} />
     </div>
   );
 }

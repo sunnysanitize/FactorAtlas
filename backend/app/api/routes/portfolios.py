@@ -3,6 +3,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
@@ -10,6 +11,7 @@ from app.schemas.portfolio import (
     CSVUploadResponse,
     HoldingCreate,
     HoldingResponse,
+    HoldingUpdate,
     PortfolioCreate,
     PortfolioResponse,
     PortfolioSummaryResponse,
@@ -17,8 +19,10 @@ from app.schemas.portfolio import (
 from app.services.portfolio_service import (
     add_holdings,
     create_portfolio,
+    delete_holding,
     get_portfolio,
     get_portfolios,
+    update_holding,
 )
 from app.utils.csv_parser import parse_csv
 
@@ -66,6 +70,39 @@ def add_holdings_route(
     add_holdings(db, portfolio_id, holdings)
     db.refresh(portfolio)
     return portfolio.holdings
+
+
+@router.put("/{portfolio_id}/holdings/{holding_id}", response_model=HoldingResponse)
+def update_holding_route(
+    portfolio_id: uuid.UUID,
+    holding_id: uuid.UUID,
+    data: HoldingUpdate,
+    db: Session = Depends(get_db),
+):
+    portfolio = get_portfolio(db, portfolio_id)
+    if not portfolio:
+        raise HTTPException(status_code=404, detail="Portfolio not found")
+
+    holding = update_holding(db, portfolio_id, holding_id, HoldingCreate(**data.model_dump()))
+    if not holding:
+        raise HTTPException(status_code=404, detail="Holding not found")
+    return holding
+
+
+@router.delete("/{portfolio_id}/holdings/{holding_id}", status_code=204)
+def delete_holding_route(
+    portfolio_id: uuid.UUID,
+    holding_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    portfolio = get_portfolio(db, portfolio_id)
+    if not portfolio:
+        raise HTTPException(status_code=404, detail="Portfolio not found")
+
+    deleted = delete_holding(db, portfolio_id, holding_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Holding not found")
+    return Response(status_code=204)
 
 
 @router.post("/{portfolio_id}/upload-csv", response_model=CSVUploadResponse)

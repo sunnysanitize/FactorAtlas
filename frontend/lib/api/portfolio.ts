@@ -1,4 +1,4 @@
-import { get, post, postForm } from "./client";
+import { del, get, post, postForm, put } from "./client";
 import type { Portfolio, PortfolioSummary, Holding, CSVUploadResponse } from "@/lib/types/api";
 
 export function listPortfolios(): Promise<PortfolioSummary[]> {
@@ -24,4 +24,16 @@ export function uploadCSV(portfolioId: string, file: File): Promise<CSVUploadRes
   const formData = new FormData();
   formData.append("file", file);
   return postForm<CSVUploadResponse>(`/portfolios/${portfolioId}/upload-csv`, formData);
+}
+
+export function updateHolding(
+  portfolioId: string,
+  holdingId: string,
+  holding: { ticker: string; shares: number; average_cost: number }
+): Promise<Holding> {
+  return put<Holding>(`/portfolios/${portfolioId}/holdings/${holdingId}`, holding);
+}
+
+export function deleteHolding(portfolioId: string, holdingId: string): Promise<void> {
+  return del(`/portfolios/${portfolioId}/holdings/${holdingId}`);
 }

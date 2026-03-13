@@ -17,9 +17,10 @@ import { EmptyState } from "@/components/states/empty-state";
 import { usePolling } from "@/lib/hooks/use-polling";
 import { getCachedOverview, getOverview } from "@/lib/api/analytics";
 import { askCopilot } from "@/lib/api/copilot";
+import { Button } from "@/components/ui/button";
 import { formatCurrency, formatPercent, formatNumber } from "@/lib/utils/format";
 import type { OverviewResponse, CopilotResponse } from "@/lib/types/api";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Sparkles } from "lucide-react";
 
 const aiSummaryCache = new Map<string, CopilotResponse>();
 
@@ -41,24 +42,6 @@ export default function PortfolioOverviewPage() {
     try {
       const data = await getOverview(portfolioId);
       setOverview(data);
-
-      const shouldRefreshAi = !background || !aiSummaryCache.has(portfolioId);
-      if (shouldRefreshAi) {
-        setAiLoading(true);
-        try {
-          const ai = await askCopilot(
-            portfolioId,
-            "Give me a brief portfolio summary and highlight any key risks or concentrations.",
-            "general"
-          );
-          aiSummaryCache.set(portfolioId, ai);
-          setAiSummary(ai);
-        } catch {
-          // Non-blocking
-        } finally {
-          setAiLoading(false);
-        }
-      }
     } catch (err) {
       if (!background) {
         setError(err instanceof Error ? err.message : "Failed to load overview");
@@ -103,6 +86,23 @@ export default function PortfolioOverviewPage() {
     (holding) => holding.market && !["United States", "Canada"].includes(holding.market)
   ).length;
 
+  const generateAiSummary = async () => {
+    setAiLoading(true);
+    try {
+      const ai = await askCopilot(
+        portfolioId,
+        "Give me a brief portfolio summary and highlight any key risks or concentrations.",
+        "general"
+      );
+      aiSummaryCache.set(portfolioId, ai);
+      setAiSummary(ai);
+    } catch {
+      // Non-blocking
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <SectionHeader title="Portfolio Overview" />
@@ -135,12 +135,26 @@ export default function PortfolioOverviewPage() {
       </div>
 
       {/* AI Summary */}
-      <AiSummaryCard
-        answer={aiSummary?.answer || ""}
-        confidence={aiSummary?.confidence}
-        sourceMetrics={aiSummary?.source_metrics}
-        loading={aiLoading}
-      />
+      {aiSummary || aiLoading ? (
+        <AiSummaryCard
+          answer={aiSummary?.answer || ""}
+          confidence={aiSummary?.confidence}
+          sourceMetrics={aiSummary?.source_metrics}
+          loading={aiLoading}
+        />
+      ) : (
+        <EmptyState
+          title="AI summary is manual"
+          description="No automatic AI calls are made from the overview. Generate a summary only when you want to use the free-tier AI request."
+          icon={<Sparkles className="h-12 w-12" />}
+          action={
+            <Button size="sm" onClick={generateAiSummary}>
+              <Sparkles className="h-4 w-4 mr-1" />
+              Generate Summary
+            </Button>
+          }
+        />
+      )}
 
       {/* Add holdings */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -155,7 +169,7 @@ export default function PortfolioOverviewPage() {
             canadianHoldingsCount ? `${canadianHoldingsCount} Canadian` : "0 Canadian"
           }, ${usHoldingsCount} U.S.${intlHoldingsCount ? `, ${intlHoldingsCount} other` : ""}`}
         />
-        <HoldingsTable holdings={o.holdings} />
+        <HoldingsTable holdings={o.holdings} portfolioId={portfolioId} onChanged={load} />
       </div>
     </div>
   );

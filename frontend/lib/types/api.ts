@@ -28,6 +28,7 @@ export interface Holding {
 }
 
 export interface HoldingAnalytics {
+  id: string;
   ticker: string;
   company_name: string | null;
   market: string | null;

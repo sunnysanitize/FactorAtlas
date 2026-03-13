@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 
 class HoldingAnalytics(BaseModel):
+    id: str
     ticker: str
     company_name: str | None
     market: str | None

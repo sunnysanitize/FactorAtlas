@@ -47,6 +47,10 @@ def classify_event(title: str, summary: str | None) -> str:
 
 def fetch_finnhub_news(tickers: list[str]) -> list[dict]:
     """Fetch news from Finnhub for given tickers."""
+    if not settings.ENABLE_EXTERNAL_NEWS_FETCH:
+        logger.info("External news fetch disabled, skipping Finnhub fetch")
+        return []
+
     if not settings.FINNHUB_API_KEY or settings.FINNHUB_API_KEY == "your-finnhub-api-key":
         logger.info("Finnhub API key not configured, skipping news fetch")
         return []

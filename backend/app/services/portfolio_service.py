@@ -130,3 +130,43 @@ def add_holdings(
 
     db.commit()
     return added, merged
+
+
+def update_holding(
+    db: Session,
+    portfolio_id: uuid.UUID,
+    holding_id: uuid.UUID,
+    data: HoldingCreate,
+) -> Holding | None:
+    holding = (
+        db.query(Holding)
+        .filter(Holding.portfolio_id == portfolio_id, Holding.id == holding_id)
+        .first()
+    )
+    if not holding:
+        return None
+
+    enriched = enrich_holding(data)
+    holding.ticker = enriched.ticker
+    holding.shares = enriched.shares
+    holding.average_cost = enriched.average_cost
+    holding.company_name = enriched.company_name
+    holding.sector = enriched.sector
+    holding.primary_theme = enriched.primary_theme
+    db.commit()
+    db.refresh(holding)
+    return holding
+
+
+def delete_holding(db: Session, portfolio_id: uuid.UUID, holding_id: uuid.UUID) -> bool:
+    holding = (
+        db.query(Holding)
+        .filter(Holding.portfolio_id == portfolio_id, Holding.id == holding_id)
+        .first()
+    )
+    if not holding:
+        return False
+
+    db.delete(holding)
+    db.commit()
+    return True

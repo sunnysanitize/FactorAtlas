@@ -164,6 +164,7 @@ def get_overview(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
             daily_ret = float(tr.iloc[-1])
 
         holdings_analytics.append({
+            "id": str(h.id),
             "ticker": h.ticker,
             "company_name": h.company_name,
             "market": market_info["market"],
