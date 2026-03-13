@@ -9,6 +9,7 @@ import { CumulativeReturnChart } from "@/components/charts/cumulative-return-cha
 import { AllocationDonut } from "@/components/charts/allocation-donut";
 import { AddHoldingForm } from "@/components/forms/add-holding-form";
 import { CsvUploadForm } from "@/components/forms/csv-upload-form";
+import { HoldingsTable } from "@/components/tables/holdings-table";
 import { AiSummaryCard } from "@/components/cards/ai-summary-card";
 import { LoadingState } from "@/components/states/loading-state";
 import { ErrorState } from "@/components/states/error-state";
@@ -96,6 +97,11 @@ export default function PortfolioOverviewPage() {
   const o = overview;
   const dailyTrend = (o.daily_return ?? 0) >= 0 ? "up" : "down";
   const cumTrend = (o.cumulative_return ?? 0) >= 0 ? "up" : "down";
+  const usHoldingsCount = o.holdings.filter((holding) => holding.market === "United States").length;
+  const canadianHoldingsCount = o.holdings.filter((holding) => holding.market === "Canada").length;
+  const intlHoldingsCount = o.holdings.filter(
+    (holding) => holding.market && !["United States", "Canada"].includes(holding.market)
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -140,6 +146,16 @@ export default function PortfolioOverviewPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <AddHoldingForm portfolioId={portfolioId} onSuccess={load} />
         <CsvUploadForm portfolioId={portfolioId} onSuccess={load} />
+      </div>
+
+      <div className="space-y-4">
+        <SectionHeader
+          title="Current Holdings"
+          description={`${
+            canadianHoldingsCount ? `${canadianHoldingsCount} Canadian` : "0 Canadian"
+          }, ${usHoldingsCount} U.S.${intlHoldingsCount ? `, ${intlHoldingsCount} other` : ""}`}
+        />
+        <HoldingsTable holdings={o.holdings} />
       </div>
     </div>
   );

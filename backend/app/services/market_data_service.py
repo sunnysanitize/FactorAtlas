@@ -11,6 +11,10 @@ from app.utils.dates import default_end_date, default_start_date
 
 logger = logging.getLogger(__name__)
 
+CANADIAN_SUFFIXES = (".TO", ".V", ".CN", ".NE")
+US_EXCHANGES = {"NMS", "NGM", "NYQ", "ASE", "PCX", "BTS", "NASDAQ", "NYSE", "AMEX"}
+CANADIAN_EXCHANGES = {"TOR", "TSX", "TSXV", "CVE", "CNQ", "NEO"}
+
 
 def fetch_ticker_metadata(ticker: str) -> dict:
     """Fetch company name, sector, and other metadata for a ticker."""
@@ -108,3 +112,18 @@ def fetch_multiple_histories(
         if not df.empty:
             result[ticker] = df
     return result
+
+
+def classify_listing_market(ticker: str, metadata: dict | None = None) -> dict[str, str | None]:
+    """Infer a human-readable listing market from ticker suffix and cached metadata."""
+    normalized = ticker.upper()
+    exchange = (metadata or {}).get("exchange")
+    currency = (metadata or {}).get("currency")
+
+    if normalized.endswith(CANADIAN_SUFFIXES) or exchange in CANADIAN_EXCHANGES or currency == "CAD":
+        return {"market": "Canada", "exchange": exchange or "TSX/TSXV", "currency": currency or "CAD"}
+
+    if exchange in US_EXCHANGES or currency == "USD" or "." not in normalized:
+        return {"market": "United States", "exchange": exchange or "NASDAQ/NYSE", "currency": currency or "USD"}
+
+    return {"market": exchange or "International", "exchange": exchange, "currency": currency}

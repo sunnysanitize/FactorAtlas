@@ -69,7 +69,7 @@ export function HoldingsTable({ holdings }: { holdings: HoldingAnalytics[] }) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-muted-foreground">Holdings</CardTitle>
           <Input
-            placeholder="Search tickers..."
+            placeholder="Search tickers, companies, sectors..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-48 h-8 text-xs"
@@ -81,6 +81,7 @@ export function HoldingsTable({ holdings }: { holdings: HoldingAnalytics[] }) {
           <thead className="border-b border-border">
             <tr>
               <SortHeader label="Ticker" field="ticker" onToggle={toggleSort} />
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Market</th>
               <SortHeader label="Shares" field="shares" onToggle={toggleSort} />
               <SortHeader label="Avg Cost" field="average_cost" onToggle={toggleSort} />
               <SortHeader label="Price" field="current_price" onToggle={toggleSort} />
@@ -101,6 +102,20 @@ export function HoldingsTable({ holdings }: { holdings: HoldingAnalytics[] }) {
                       <p className="text-xs text-muted-foreground truncate max-w-[150px]">{h.company_name}</p>
                     )}
                   </div>
+                </td>
+                <td className="px-3 py-2.5">
+                  {h.market && (
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="text-xs">
+                        {h.market === "Canada" ? "CA" : h.market === "United States" ? "US" : h.market}
+                      </Badge>
+                      {(h.exchange || h.currency) && (
+                        <p className="text-[11px] text-muted-foreground">
+                          {[h.exchange, h.currency].filter(Boolean).join(" • ")}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </td>
                 <td className="px-3 py-2.5 text-foreground">{h.shares.toFixed(2)}</td>
                 <td className="px-3 py-2.5 text-foreground">{formatCurrency(h.average_cost)}</td>

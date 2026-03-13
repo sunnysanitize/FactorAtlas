@@ -30,6 +30,9 @@ export interface Holding {
 export interface HoldingAnalytics {
   ticker: string;
   company_name: string | null;
+  market: string | null;
+  exchange: string | null;
+  currency: string | null;
   shares: number;
   average_cost: number;
   current_price: number;

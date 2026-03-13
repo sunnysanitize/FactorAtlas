@@ -4,19 +4,34 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { invalidatePortfolioAnalytics } from "@/lib/api/analytics";
 import { addHoldings } from "@/lib/api/portfolio";
 import { CheckCircle2, Plus, Trash2 } from "lucide-react";
 
+type ListingMarket = "us" | "ca";
+
 interface HoldingDraft {
   id: number;
   ticker: string;
+  market: ListingMarket;
   shares: string;
   averageCost: string;
 }
 
 function createDraft(id: number): HoldingDraft {
-  return { id, ticker: "", shares: "", averageCost: "" };
+  return { id, ticker: "", market: "us", shares: "", averageCost: "" };
+}
+
+function normalizeTickerForMarket(ticker: string, market: ListingMarket): string {
+  const normalized = ticker.trim().toUpperCase();
+  if (!normalized) return normalized;
+
+  if (market === "ca" && !normalized.includes(".")) {
+    return `${normalized}.TO`;
+  }
+
+  return normalized;
 }
 
 export function AddHoldingForm({
@@ -80,13 +95,13 @@ export function AddHoldingForm({
       await addHoldings(
         portfolioId,
         populatedRows.map((row) => ({
-          ticker: row.ticker.trim().toUpperCase(),
+          ticker: normalizeTickerForMarket(row.ticker, row.market),
           shares: parseFloat(row.shares),
           average_cost: parseFloat(row.averageCost),
         }))
       );
       invalidatePortfolioAnalytics(portfolioId);
-      const addedTickers = populatedRows.map((row) => row.ticker.trim().toUpperCase());
+      const addedTickers = populatedRows.map((row) => normalizeTickerForMarket(row.ticker, row.market));
       setRows([createDraft(nextId)]);
       setNextId((current) => current + 1);
       setSuccessMessage(
@@ -109,48 +124,71 @@ export function AddHoldingForm({
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-xs text-muted-foreground">
-          Add one or more stocks. Existing tickers are merged automatically.
+          Add one or more stocks. Choose the listing market for each row. Existing tickers are merged automatically.
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           {rows.map((row, index) => (
-            <div key={row.id} className="grid gap-3 md:grid-cols-[minmax(0,1.2fr)_120px_140px_auto] md:items-end">
-              <div>
-                <label className="text-xs text-muted-foreground">
-                  {index === 0 ? "Ticker" : `Ticker ${index + 1}`}
-                </label>
-                <Input
-                  placeholder="AAPL"
-                  value={row.ticker}
-                  onChange={(e) => updateRow(row.id, "ticker", e.target.value.toUpperCase())}
-                  className="h-9 text-sm"
-                  disabled={loading}
-                />
+            <div key={row.id} className="rounded-lg border border-border/60 p-3">
+              <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_170px_120px_140px] xl:items-end">
+                <div>
+                  <label className="text-xs text-muted-foreground">
+                    {index === 0 ? "Ticker" : `Ticker ${index + 1}`}
+                  </label>
+                  <Input
+                    placeholder={row.market === "ca" ? "TD or TD.TO" : "AAPL"}
+                    value={row.ticker}
+                    onChange={(e) => updateRow(row.id, "ticker", e.target.value.toUpperCase())}
+                    className="h-9 text-sm"
+                    disabled={loading}
+                  />
+                  {row.market === "ca" && (
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Canadian tickers default to `.TO` unless you enter a suffix like `.V` yourself.
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Market</label>
+                  <Select
+                    value={row.market}
+                    onValueChange={(value) => updateRow(row.id, "market", value as ListingMarket)}
+                    disabled={loading}
+                  >
+                    <SelectTrigger className="h-9 w-full text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="us">United States</SelectItem>
+                      <SelectItem value="ca">Canada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Shares</label>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="10"
+                    value={row.shares}
+                    onChange={(e) => updateRow(row.id, "shares", e.target.value)}
+                    className="h-9 text-sm"
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Avg Cost</label>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="150.00"
+                    value={row.averageCost}
+                    onChange={(e) => updateRow(row.id, "averageCost", e.target.value)}
+                    className="h-9 text-sm"
+                    disabled={loading}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground">Shares</label>
-                <Input
-                  type="number"
-                  step="any"
-                  placeholder="10"
-                  value={row.shares}
-                  onChange={(e) => updateRow(row.id, "shares", e.target.value)}
-                  className="h-9 text-sm"
-                  disabled={loading}
-                />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground">Avg Cost</label>
-                <Input
-                  type="number"
-                  step="any"
-                  placeholder="150.00"
-                  value={row.averageCost}
-                  onChange={(e) => updateRow(row.id, "averageCost", e.target.value)}
-                  className="h-9 text-sm"
-                  disabled={loading}
-                />
-              </div>
-              <div className="flex gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 <Button type="button" size="sm" variant="outline" disabled={loading} className="h-9" onClick={() => removeRow(row.id)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>

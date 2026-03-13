@@ -15,8 +15,10 @@ from app.schemas.analytics import (
     ThemeExposureResponse,
 )
 from app.services.market_data_service import (
+    classify_listing_market,
     fetch_benchmark_history,
     fetch_current_price,
+    fetch_ticker_metadata,
     fetch_multiple_histories,
 )
 from app.services.portfolio_service import get_portfolio
@@ -153,6 +155,8 @@ def get_overview(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
         cost_basis = h.shares * h.average_cost
         gl = mv - cost_basis
         gl_pct = gl / cost_basis if cost_basis > 0 else 0
+        metadata = fetch_ticker_metadata(h.ticker)
+        market_info = classify_listing_market(h.ticker, metadata)
 
         daily_ret = None
         tr = a["ticker_returns"].get(h.ticker)
@@ -162,6 +166,9 @@ def get_overview(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
         holdings_analytics.append({
             "ticker": h.ticker,
             "company_name": h.company_name,
+            "market": market_info["market"],
+            "exchange": market_info["exchange"],
+            "currency": market_info["currency"],
             "shares": h.shares,
             "average_cost": h.average_cost,
             "current_price": price,

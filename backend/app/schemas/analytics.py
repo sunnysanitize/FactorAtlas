@@ -4,6 +4,9 @@ from pydantic import BaseModel
 class HoldingAnalytics(BaseModel):
     ticker: str
     company_name: str | None
+    market: str | None
+    exchange: str | None
+    currency: str | None
     shares: float
     average_cost: float
     current_price: float
