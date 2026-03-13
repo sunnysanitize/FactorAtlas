@@ -13,6 +13,7 @@ The build order should optimize for:
 5. dashboard usability
 6. grounded AI explanations
 7. intelligence features layered on top of real analytics
+8. flagship differentiators that make the product feel closer to a market operating system than a portfolio app
 
 ## Delivery Strategy
 
@@ -22,6 +23,7 @@ Treat this as a staged platform build, not a parallel feature dump.
 - Phase 1 delivers a usable MVP around portfolio ingestion and core quant analytics.
 - Phase 2 adds intelligence features that depend on Phase 1 outputs.
 - Phase 3 improves quant depth, robustness, and scenario realism.
+- Phase 4 activates Insane Mode with factor intelligence, look-through exposure, causal event propagation, adversarial scenarios, and command-center workflows.
 
 Each phase should finish with:
 
@@ -39,6 +41,108 @@ Each phase should finish with:
 - Prefer deterministic enrichment over opaque heuristics for MVP.
 - Use a shared contract layer so frontend and backend stay aligned.
 - Ship thin vertical slices that are usable end to end.
+- Add differentiated intelligence only when the upstream evidence model is explicit and inspectable.
+- Every advanced insight should be traceable to underlying holdings, factors, events, or graph edges.
+
+## Flagship Differentiators
+
+These are the features that can make the platform feel materially more ambitious than a strong portfolio dashboard.
+
+### 1. Portfolio Knowledge Graph
+
+Make the core system graph-native rather than page-native.
+
+The graph should unify:
+
+- holdings
+- sectors
+- themes
+- macro factors
+- events
+- suppliers
+- customers
+- competitors
+- geographies
+- ETFs and underlying constituents
+
+This turns the graph into a reasoning surface rather than a decorative visualization.
+
+### 2. Factor Intelligence Layer
+
+Move beyond sector and theme allocation into hidden driver decomposition.
+
+Target outputs:
+
+- market beta
+- growth vs value tilt
+- momentum tilt
+- size exposure
+- quality tilt
+- rate sensitivity
+- commodity sensitivity where relevant
+- custom thematic factors such as AI capex or semiconductor cycle exposure
+
+This allows the system to explain what actually drives returns and drawdowns.
+
+### 3. Look-Through Exposure Engine
+
+Support indirect exposure analysis, especially for ETFs and overlapping wrappers.
+
+Target outputs:
+
+- ETF decomposition into top underlying holdings
+- direct plus indirect exposure netting
+- overlap detection across portfolios or sleeves
+- concentration after look-through rather than surface allocation
+
+This is one of the strongest differentiators because most portfolio tools stop at top-level holdings.
+
+### 4. Causal Event Propagation
+
+Instead of ranking events only by ticker mention, model how events propagate through connected entities.
+
+Example pathways:
+
+- rate shock -> long-duration growth -> software and fintech holdings
+- TSMC disruption -> semiconductor supply chain -> chip designers and equipment names
+- energy spike -> transport and industrial cost pressure -> downstream holdings
+
+The system should show both the event and the path by which it matters.
+
+### 5. Adversarial Scenario Generation
+
+Go beyond predefined shock templates and generate structurally dangerous scenarios from the portfolio itself.
+
+Target outputs:
+
+- top 3 ways this portfolio breaks
+- minimum shock set that causes a target drawdown
+- hidden correlation cluster most likely to fail together
+- sectors/themes that appear diversified but collapse under stress
+
+This elevates the platform from analysis to portfolio defense tooling.
+
+### 6. Command-Center Interface
+
+Expose the system through a dense operational UI, not only isolated dashboard pages.
+
+Target capabilities:
+
+- live event rail
+- synchronized graph, heatmap, and scenario views
+- evidence panel for every AI claim
+- time scrubber to replay how risk structure evolved around key events
+- fast cross-filtering across holdings, themes, factors, and events
+
+## Insane Mode Design Rules
+
+If the advanced track is enabled, hold it to these standards:
+
+- no black-box scores without decomposition
+- no graph edge without a sourceable explanation
+- no AI explanation without cited structured inputs
+- no advanced scenario without a visible chain of assumptions
+- no novelty feature that cannot support an institutional-style workflow
 
 ## Proposed Stack Decisions
 
@@ -57,14 +161,16 @@ To reduce early ambiguity, use these defaults unless there is a reason to change
 
 ## Workstreams
 
-The project breaks into six implementation workstreams:
+The project breaks into eight implementation workstreams:
 
 1. Platform foundation
 2. Portfolio and data ingestion
 3. Quant analytics engine
 4. Frontend dashboard and UX
 5. Intelligence layer
-6. Reliability, testing, and deployment
+6. Factor and look-through intelligence
+7. Causal graph and scenario reasoning
+8. Reliability, testing, and deployment
 
 ## Phase 0: Foundation
 
@@ -469,6 +575,197 @@ Build:
 - performance remains acceptable with medium-sized portfolios
 - risk outputs remain interpretable and tied to backend calculations
 
+## Phase 4: Insane Mode
+
+### Objective
+
+Transform the product from a strong portfolio intelligence app into a market operating system centered on causal reasoning, hidden exposure decomposition, and structurally informed decision support.
+
+### Scope
+
+- factor intelligence layer
+- look-through ETF and wrapper decomposition
+- causal event propagation
+- entity relationship expansion
+- adversarial scenario generation
+- command-center UI mode
+
+### Backend Implementation
+
+#### 1. Factor Intelligence Engine
+
+Build:
+
+- factor exposure schema and storage
+- rolling factor loading calculations where data permits
+- rules-based thematic factor definitions for MVP of this phase
+- factor contribution outputs for return, risk, and scenario sensitivity
+
+Required outputs:
+
+- per-portfolio factor exposure summary
+- per-holding factor linkage
+- factor concentration alerts
+- factor stability over time
+
+Potential endpoint additions:
+
+- `GET /portfolios/{portfolio_id}/factors`
+- `GET /portfolios/{portfolio_id}/factor-history`
+
+#### 2. Look-Through Exposure Engine
+
+Build:
+
+- ETF constituent ingestion
+- recursive exposure flattening with depth controls
+- direct plus indirect exposure aggregation
+- overlap detection across holdings and wrappers
+
+Required outputs:
+
+- true top underlying names
+- true sector and theme concentration after decomposition
+- redundancy score across direct and indirect exposures
+
+Potential endpoint additions:
+
+- `GET /portfolios/{portfolio_id}/lookthrough`
+- `GET /portfolios/{portfolio_id}/overlap`
+
+#### 3. Entity Intelligence Layer
+
+Expand the data model to include:
+
+- suppliers
+- customers
+- competitors
+- geographies
+- macro factors
+- benchmark or ETF entities
+
+Required behavior:
+
+- attach evidence metadata to each relationship
+- distinguish curated links from inferred links
+- support confidence scoring without hiding the underlying source
+
+#### 4. Causal Event Propagation Engine
+
+Build:
+
+- event-to-entity linking
+- entity-to-theme and entity-to-factor propagation logic
+- path scoring based on exposure strength and relationship quality
+- multi-hop reasoning with strict depth limits
+
+Required outputs:
+
+- ranked impact pathways
+- event blast radius summary
+- direct vs indirect impact separation
+
+Potential endpoint additions:
+
+- `GET /portfolios/{portfolio_id}/events/propagation`
+- `GET /portfolios/{portfolio_id}/events/{event_id}/pathways`
+
+#### 5. Adversarial Scenario Engine
+
+Build:
+
+- worst-cluster stress identification
+- portfolio break analysis based on correlations, factors, and themes
+- target-loss reverse stress testing
+- scenario ranking by plausibility and severity
+
+Required outputs:
+
+- top structural vulnerabilities
+- smallest scenario set that creates a target loss
+- factors/themes/entities most responsible for break risk
+
+Potential endpoint additions:
+
+- `POST /portfolios/{portfolio_id}/scenarios/reverse-stress`
+- `GET /portfolios/{portfolio_id}/vulnerabilities`
+
+### Frontend Implementation
+
+#### 1. Command-Center Mode
+
+Build a flagship route or dashboard mode that combines:
+
+- live event stream
+- top vulnerabilities panel
+- factor exposure panel
+- synchronized relationship graph
+- correlation and overlap heatmaps
+- scenario launcher
+- evidence drawer
+
+This should feel like an operator console, not a standard SaaS dashboard.
+
+#### 2. Factor Intelligence Views
+
+Build:
+
+- factor exposure cards
+- rolling factor stability charts
+- factor contribution breakdowns
+- hidden-driver narrative panel grounded in structured outputs
+
+#### 3. Look-Through and Overlap Views
+
+Build:
+
+- ETF decomposition explorer
+- direct vs indirect exposure comparison
+- redundancy map
+- true concentration callouts after look-through analysis
+
+#### 4. Event Propagation Views
+
+Build:
+
+- pathway explorer from event to holdings
+- blast radius visualization
+- direct vs indirect impact segmentation
+- path evidence detail panel
+
+#### 5. Reverse Stress and Vulnerability Views
+
+Build:
+
+- vulnerability leaderboard
+- reverse stress setup form
+- scenario explanation cards
+- cluster failure explorer
+
+### Data and Domain Tasks
+
+- curate initial macro factor taxonomy
+- curate initial supplier/customer/competitor relationship data for flagship demo names
+- decide evidence model for graph edges and propagation paths
+- define ETF decomposition strategy and vendor fallback plan
+- define confidence labels for curated vs inferred relationships
+
+### Testing Requirements
+
+- tests for factor aggregation and normalization
+- tests for recursive look-through decomposition
+- tests for propagation path generation and depth controls
+- tests for reverse stress scenario outputs
+- tests for evidence attribution on graph edges and AI summaries
+
+### Acceptance Criteria
+
+- the system can explain hidden exposures beyond visible holdings
+- the system can show how an event matters through a causal path, not just a mention match
+- ETF wrappers can be decomposed into underlying concentration and overlap
+- the platform can generate structurally dangerous scenarios from portfolio composition
+- the command-center UI makes factors, events, graph edges, and scenarios inspectable in one workflow
+
 ## Detailed Task Breakdown By Layer
 
 ### Backend Services
@@ -512,6 +809,17 @@ Potential Phase 3 additions:
 - `ScenarioRun`
 - `CachedAnalyticsPayload`
 
+Potential Phase 4 additions:
+
+- `FactorDefinition`
+- `FactorExposureSnapshot`
+- `Entity`
+- `EntityRelationship`
+- `ETFConstituent`
+- `EventPropagationPath`
+- `ReverseStressRun`
+- `OverlapSnapshot`
+
 ### Frontend Routes
 
 Implement in this order:
@@ -548,6 +856,15 @@ Then feature components:
 - relationship graph panel
 - scenario impact cards
 
+Then flagship components for Insane Mode:
+
+- factor exposure matrix
+- look-through explorer
+- event pathway explorer
+- vulnerability leaderboard
+- evidence drawer
+- command-center workspace panels
+
 ## API Contract Planning
 
 Define the response shapes before deep frontend work begins.
@@ -563,6 +880,15 @@ Priority contracts:
 - `PortfolioGraphResponse`
 - `ScenarioRunResponse`
 - `PortfolioCopilotResponse`
+
+Insane Mode contracts:
+
+- `FactorExposureResponse`
+- `LookthroughExposureResponse`
+- `EntityGraphResponse`
+- `EventPropagationResponse`
+- `ReverseStressResponse`
+- `PortfolioVulnerabilityResponse`
 
 Frontend and backend should share a written contract reference, even if types are duplicated initially.
 
@@ -584,6 +910,7 @@ Establish a consistent dark analytical visual language in Phase 0:
 - every major number should have context nearby
 - AI summaries should sit beside the underlying metrics they interpret
 - graph interactions should expose real relationship logic
+- advanced views should always expose evidence, pathway, and decomposition without hiding behind novelty
 
 ## Testing Strategy
 
@@ -644,6 +971,22 @@ Mitigation:
 - require explanation text on edges
 - expose filtering so the graph remains interpretable
 
+### Risk: Insane Mode becomes incoherent scope inflation
+
+Mitigation:
+
+- keep flagship differentiators behind Phase 4 gates
+- require each advanced feature to reuse Phase 1-3 primitives
+- prioritize two or three signature workflows rather than many disconnected surfaces
+
+### Risk: Causal reasoning looks impressive but is weakly grounded
+
+Mitigation:
+
+- separate curated relationships from inferred ones
+- attach confidence and source metadata to every path
+- expose the exact reasoning chain in UI and API responses
+
 ### Risk: Scope expands too early
 
 Mitigation:
@@ -664,6 +1007,7 @@ This is the recommended execution order for the first implementation sprint:
 7. Build overview, holdings, and risk pages.
 8. Add grounded AI summary using computed analytics only.
 9. Seed a demo portfolio and validate the full flow.
+10. After MVP stability, select one flagship differentiator and build it deeply before adding the rest.
 
 ## Definition of Done For MVP
 
@@ -677,6 +1021,33 @@ The MVP is done when:
 - the AI layer produces grounded summaries without inventing numbers
 - the system is coherent and useful before theme/event/graph/scenario work begins
 
+## Definition of Done For Insane Mode
+
+Insane Mode is done when:
+
+- the platform can decompose visible and indirect exposures into a unified risk picture
+- event relevance can be traced through explicit multi-entity pathways
+- at least one reverse stress workflow identifies structural vulnerabilities from the portfolio itself
+- the UI exposes evidence for graph edges, factor exposures, and scenario conclusions
+- the product feels qualitatively different from a premium retail analytics app
+
+## Recommended Flagship Build Order
+
+Do not build all differentiators at once. Build them in this sequence:
+
+1. Factor intelligence
+2. Look-through exposure
+3. Causal event propagation
+4. Reverse stress and vulnerability engine
+5. Command-center UI
+
+Reasoning:
+
+- factor and look-through outputs create the strongest hidden-exposure story
+- event propagation becomes more credible once factor and entity data exist
+- reverse stress becomes more interesting once graph and factor structure are available
+- command-center mode is most effective once the underlying surfaces are already real
+
 ## Recommended Next Step
 
 Start implementation with Phase 0 and the first half of Phase 1:
@@ -688,3 +1059,5 @@ Start implementation with Phase 0 and the first half of Phase 1:
 - implement quant service with tests
 
 That sequence creates the foundation the rest of the product depends on.
+
+Once MVP is stable, the best first Insane Mode investment is factor intelligence plus look-through exposure. That pair creates the most defensible jump in product ambition without requiring the full causal graph stack on day one.
