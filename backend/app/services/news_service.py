@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.event_holding_relevance import EventHoldingRelevance
 from app.models.news_event import NewsEvent
+from app.utils.cache import events_cache
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +135,7 @@ def ingest_events(
         events.append(event)
 
     db.commit()
+    events_cache.clear()
     return events
 
 
@@ -145,6 +147,11 @@ def get_portfolio_events(
     """Get events relevant to portfolio tickers, ranked by relevance."""
     if not tickers:
         return []
+
+    cache_key = f"events:{','.join(sorted(tickers))}:{limit}"
+    cached = events_cache.get(cache_key)
+    if cached is not None:
+        return cached
 
     relevances = (
         db.query(EventHoldingRelevance)
@@ -189,4 +196,6 @@ def get_portfolio_events(
         })
 
     results.sort(key=lambda x: x["max_relevance"], reverse=True)
-    return results[:limit]
+    final_results = results[:limit]
+    events_cache.set(cache_key, final_results)
+    return final_results

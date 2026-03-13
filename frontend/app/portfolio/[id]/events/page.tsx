@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { useParams } from "next/navigation";
 import { SectionHeader } from "@/components/cards/section-header";
 import { EventTable } from "@/components/tables/event-table";
@@ -8,15 +8,16 @@ import { LoadingState } from "@/components/states/loading-state";
 import { ErrorState } from "@/components/states/error-state";
 import { EmptyState } from "@/components/states/empty-state";
 import { Button } from "@/components/ui/button";
-import { getEvents, refreshEvents } from "@/lib/api/events";
+import { getCachedEvents, getEvents, refreshEvents } from "@/lib/api/events";
 import type { NewsEvent } from "@/lib/types/api";
 import { Newspaper, RefreshCw } from "lucide-react";
 
 export default function EventsPage() {
   const params = useParams();
   const portfolioId = params.id as string;
-  const [events, setEvents] = useState<NewsEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cachedEvents = getCachedEvents(portfolioId);
+  const [events, setEvents] = useState<NewsEvent[]>(cachedEvents?.events ?? []);
+  const [loading, setLoading] = useState(!cachedEvents);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
@@ -51,6 +52,14 @@ export default function EventsPage() {
       setRefreshing(false);
     }
   };
+
+  const loadOnMount = useEffectEvent(() => {
+    void load(Boolean(cachedEvents));
+  });
+
+  useEffect(() => {
+    loadOnMount();
+  }, [portfolioId]);
 
   if (loading) return <LoadingState message="Fetching events..." />;
   if (error) return <ErrorState message={error} onRetry={load} />;

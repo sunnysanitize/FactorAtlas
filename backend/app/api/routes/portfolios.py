@@ -7,9 +7,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
-from app.core.config import settings
 from app.models.user import User
-from app.services.news_service import ingest_events
 from app.schemas.portfolio import (
     CSVUploadResponse,
     HoldingCreate,
@@ -30,21 +28,6 @@ from app.services.portfolio_service import (
 from app.utils.csv_parser import parse_csv
 
 router = APIRouter(prefix="/portfolios", tags=["portfolios"])
-
-
-def _ingest_events_for_tickers(db: Session, tickers: list[str]) -> None:
-    if not settings.ENABLE_EXTERNAL_NEWS_FETCH:
-        return
-
-    unique_tickers = list(dict.fromkeys(ticker for ticker in tickers if ticker))
-    if not unique_tickers:
-        return
-
-    try:
-        ingest_events(db, unique_tickers)
-    except Exception:
-        # Event ingestion is best-effort and should never block portfolio mutations.
-        pass
 
 
 @router.post("", response_model=PortfolioResponse)
@@ -97,15 +80,8 @@ def add_holdings_route(
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
 
-    existing_tickers = {holding.ticker for holding in portfolio.holdings}
     add_holdings(db, portfolio_id, holdings)
     db.refresh(portfolio)
-    new_tickers = [
-        holding.ticker
-        for holding in holdings
-        if holding.ticker not in existing_tickers
-    ]
-    _ingest_events_for_tickers(db, new_tickers)
     return portfolio.holdings
 
 
@@ -164,14 +140,7 @@ async def upload_csv_route(
     if not holdings and errors:
         raise HTTPException(status_code=400, detail=f"CSV parsing failed: {'; '.join(errors)}")
 
-    existing_tickers = {holding.ticker for holding in portfolio.holdings}
     added, merged = add_holdings(db, portfolio_id, holdings)
-    new_tickers = [
-        holding.ticker
-        for holding in holdings
-        if holding.ticker not in existing_tickers
-    ]
-    _ingest_events_for_tickers(db, new_tickers)
 
     return CSVUploadResponse(
         holdings_added=added,
