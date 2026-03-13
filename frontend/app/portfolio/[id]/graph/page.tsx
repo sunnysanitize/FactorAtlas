@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { SectionHeader } from "@/components/cards/section-header";
 import { RelationshipGraph } from "@/components/graph/relationship-graph";
 import { LoadingState } from "@/components/states/loading-state";
 import { ErrorState } from "@/components/states/error-state";
 import { EmptyState } from "@/components/states/empty-state";
+import { usePolling } from "@/lib/hooks/use-polling";
 import { getGraph } from "@/lib/api/graph";
 import type { GraphResponse } from "@/lib/types/api";
 import { Network } from "lucide-react";
@@ -18,22 +19,26 @@ export default function GraphPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const load = async () => {
-    setLoading(true);
-    setError("");
+  const load = async (background = false) => {
+    if (!background) {
+      setLoading(true);
+      setError("");
+    }
     try {
       const data = await getGraph(portfolioId);
       setGraph(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load graph");
+      if (!background) {
+        setError(err instanceof Error ? err.message : "Failed to load graph");
+      }
     } finally {
-      setLoading(false);
+      if (!background) {
+        setLoading(false);
+      }
     }
   };
 
-  useEffect(() => {
-    load();
-  }, [portfolioId]);
+  usePolling(() => load(graph !== null), { enabled: Boolean(portfolioId) });
 
   if (loading) return <LoadingState message="Building intelligence graph..." />;
   if (error) return <ErrorState message={error} onRetry={load} />;

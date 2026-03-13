@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { KpiCard } from "@/components/cards/kpi-card";
 import { SectionHeader } from "@/components/cards/section-header";
@@ -9,22 +9,25 @@ import { CorrelationHeatmap } from "@/components/charts/correlation-heatmap";
 import { RollingMetricsChart } from "@/components/charts/rolling-metrics-chart";
 import { LoadingState } from "@/components/states/loading-state";
 import { ErrorState } from "@/components/states/error-state";
-import { getRisk } from "@/lib/api/analytics";
-import { getCorrelations } from "@/lib/api/analytics";
+import { usePolling } from "@/lib/hooks/use-polling";
+import { getCachedOverview, getCorrelations, getRisk } from "@/lib/api/analytics";
 import { formatPercent, formatNumber } from "@/lib/utils/format";
 import type { RiskResponse, CorrelationMatrix } from "@/lib/types/api";
 
 export default function RiskPage() {
   const params = useParams();
   const portfolioId = params.id as string;
+  const cachedOverview = getCachedOverview(portfolioId);
   const [risk, setRisk] = useState<RiskResponse | null>(null);
   const [correlations, setCorrelations] = useState<CorrelationMatrix | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedOverview);
   const [error, setError] = useState("");
 
-  const load = async () => {
-    setLoading(true);
-    setError("");
+  const load = async (background = false) => {
+    if (!background) {
+      setLoading(true);
+      setError("");
+    }
     try {
       const [riskData, corrData] = await Promise.all([
         getRisk(portfolioId),
@@ -33,15 +36,17 @@ export default function RiskPage() {
       setRisk(riskData);
       setCorrelations(corrData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load risk data");
+      if (!background) {
+        setError(err instanceof Error ? err.message : "Failed to load risk data");
+      }
     } finally {
-      setLoading(false);
+      if (!background) {
+        setLoading(false);
+      }
     }
   };
 
-  useEffect(() => {
-    load();
-  }, [portfolioId]);
+  usePolling(() => load(risk !== null), { enabled: Boolean(portfolioId), runOnMount: true });
 
   if (loading) return <LoadingState message="Computing risk analytics..." rows={6} />;
   if (error) return <ErrorState message={error} onRetry={load} />;

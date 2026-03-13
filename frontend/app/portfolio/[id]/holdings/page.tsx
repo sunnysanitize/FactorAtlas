@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { SectionHeader } from "@/components/cards/section-header";
 import { HoldingsTable } from "@/components/tables/holdings-table";
 import { AddHoldingForm } from "@/components/forms/add-holding-form";
 import { LoadingState } from "@/components/states/loading-state";
 import { ErrorState } from "@/components/states/error-state";
+import { usePolling } from "@/lib/hooks/use-polling";
 import { getOverview } from "@/lib/api/analytics";
 import type { HoldingAnalytics } from "@/lib/types/api";
 
@@ -17,22 +18,26 @@ export default function HoldingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const load = async () => {
-    setLoading(true);
-    setError("");
+  const load = async (background = false) => {
+    if (!background) {
+      setLoading(true);
+      setError("");
+    }
     try {
       const data = await getOverview(portfolioId);
       setHoldings(data.holdings);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load holdings");
+      if (!background) {
+        setError(err instanceof Error ? err.message : "Failed to load holdings");
+      }
     } finally {
-      setLoading(false);
+      if (!background) {
+        setLoading(false);
+      }
     }
   };
 
-  useEffect(() => {
-    load();
-  }, [portfolioId]);
+  usePolling(() => load(holdings.length > 0), { enabled: Boolean(portfolioId) });
 
   if (loading) return <LoadingState message="Loading holdings..." />;
   if (error) return <ErrorState message={error} onRetry={load} />;

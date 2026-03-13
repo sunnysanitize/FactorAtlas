@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { KpiCard } from "@/components/cards/kpi-card";
 import { SectionHeader } from "@/components/cards/section-header";
@@ -13,48 +13,63 @@ import { AiSummaryCard } from "@/components/cards/ai-summary-card";
 import { LoadingState } from "@/components/states/loading-state";
 import { ErrorState } from "@/components/states/error-state";
 import { EmptyState } from "@/components/states/empty-state";
-import { getOverview } from "@/lib/api/analytics";
+import { usePolling } from "@/lib/hooks/use-polling";
+import { getCachedOverview, getOverview } from "@/lib/api/analytics";
 import { askCopilot } from "@/lib/api/copilot";
 import { formatCurrency, formatPercent, formatNumber } from "@/lib/utils/format";
 import type { OverviewResponse, CopilotResponse } from "@/lib/types/api";
 import { BarChart3 } from "lucide-react";
 
+const aiSummaryCache = new Map<string, CopilotResponse>();
+
 export default function PortfolioOverviewPage() {
   const params = useParams();
   const portfolioId = params.id as string;
-  const [overview, setOverview] = useState<OverviewResponse | null>(null);
-  const [aiSummary, setAiSummary] = useState<CopilotResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const cachedOverview = getCachedOverview(portfolioId);
+  const [overview, setOverview] = useState<OverviewResponse | null>(cachedOverview);
+  const [aiSummary, setAiSummary] = useState<CopilotResponse | null>(aiSummaryCache.get(portfolioId) ?? null);
+  const [loading, setLoading] = useState(!cachedOverview);
   const [aiLoading, setAiLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const load = async () => {
-    setLoading(true);
-    setError("");
+  const load = async (background = false) => {
+    if (!background) {
+      setLoading(true);
+      setError("");
+    }
     try {
       const data = await getOverview(portfolioId);
       setOverview(data);
 
-      // Fetch AI summary
-      setAiLoading(true);
-      try {
-        const ai = await askCopilot(portfolioId, "Give me a brief portfolio summary and highlight any key risks or concentrations.", "general");
-        setAiSummary(ai);
-      } catch {
-        // Non-blocking
-      } finally {
-        setAiLoading(false);
+      const shouldRefreshAi = !background || !aiSummaryCache.has(portfolioId);
+      if (shouldRefreshAi) {
+        setAiLoading(true);
+        try {
+          const ai = await askCopilot(
+            portfolioId,
+            "Give me a brief portfolio summary and highlight any key risks or concentrations.",
+            "general"
+          );
+          aiSummaryCache.set(portfolioId, ai);
+          setAiSummary(ai);
+        } catch {
+          // Non-blocking
+        } finally {
+          setAiLoading(false);
+        }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load overview");
+      if (!background) {
+        setError(err instanceof Error ? err.message : "Failed to load overview");
+      }
     } finally {
-      setLoading(false);
+      if (!background) {
+        setLoading(false);
+      }
     }
   };
 
-  useEffect(() => {
-    load();
-  }, [portfolioId]);
+  usePolling(() => load(overview !== null), { enabled: Boolean(portfolioId), runOnMount: !cachedOverview });
 
   if (loading) return <LoadingState message="Computing portfolio analytics..." rows={6} />;
   if (error) {

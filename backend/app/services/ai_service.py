@@ -2,6 +2,8 @@
 
 import logging
 
+import httpx
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -20,6 +22,52 @@ def _get_model():
         return None
     genai.configure(api_key=settings.GEMINI_API_KEY)
     return genai.GenerativeModel("gemini-2.0-flash")
+
+
+def _has_openrouter() -> bool:
+    return bool(
+        settings.OPENROUTER_API_KEY
+        and settings.OPENROUTER_API_KEY != "your-openrouter-api-key"
+        and settings.OPENROUTER_MODEL
+    )
+
+
+def _call_openrouter(prompt: str) -> str | None:
+    if not _has_openrouter():
+        return None
+
+    response = httpx.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": settings.OPENROUTER_MODEL,
+            "messages": [
+                {"role": "user", "content": prompt},
+            ],
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    data = response.json()
+    choices = data.get("choices") or []
+    if not choices:
+        return None
+
+    message = choices[0].get("message") or {}
+    content = message.get("content")
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        text_parts = [
+            part.get("text", "")
+            for part in content
+            if isinstance(part, dict) and part.get("type") == "text"
+        ]
+        return "".join(text_parts) or None
+    return None
 
 
 SYSTEM_PROMPT = """You are a portfolio intelligence analyst for the FactorAtlas platform.
@@ -106,8 +154,9 @@ def ask_copilot(
     events: list[dict] | None = None,
     scenario: dict | None = None,
 ) -> dict:
-    """Send a grounded question to Gemini and return the response."""
-    model = _get_model()
+    """Send a grounded question to the configured AI provider and return the response."""
+    provider = settings.AI_PROVIDER.lower().strip()
+    model = _get_model() if provider == "gemini" else None
 
     context = build_context(overview, risk, themes, events, scenario)
 
@@ -128,14 +177,23 @@ USER QUESTION: {question}
 
 Provide a clear, analytical response based ONLY on the data above."""
 
-    if model is None:
-        # Fallback: generate a basic response from the data
-        return _fallback_response(question, context_type, overview, risk, themes)
-
     try:
-        response = model.generate_content(prompt)
+        response_text: str | None
+        if provider == "openrouter":
+            response_text = _call_openrouter(prompt)
+        elif provider == "gemini":
+            if model is None:
+                return _fallback_response(question, context_type, overview, risk, themes)
+            response = model.generate_content(prompt)
+            response_text = response.text
+        else:
+            return _fallback_response(question, context_type, overview, risk, themes)
+
+        if not response_text:
+            return _fallback_response(question, context_type, overview, risk, themes)
+
         return {
-            "answer": response.text,
+            "answer": response_text,
             "source_metrics": {
                 "total_value": overview.get("total_value") if overview else None,
                 "volatility": risk.get("annualized_volatility") if risk else None,
@@ -145,7 +203,7 @@ Provide a clear, analytical response based ONLY on the data above."""
             "confidence": "high",
         }
     except Exception as e:
-        logger.error(f"Gemini API error: {e}")
+        logger.error("AI provider error (%s): %s", provider, e)
         return _fallback_response(question, context_type, overview, risk, themes)
 
 

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NODE_COLORS } from "@/lib/utils/chart";
-import type { GraphResponse, GraphNode, GraphEdge } from "@/lib/types/api";
+import type { GraphResponse, GraphNode } from "@/lib/types/api";
 
 interface ForceGraphMethods {
   zoomToFit: (duration?: number, padding?: number) => void;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { SectionHeader } from "@/components/cards/section-header";
 import { ScenarioForm } from "@/components/forms/scenario-form";
@@ -10,7 +10,7 @@ import { ErrorState } from "@/components/states/error-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { runScenario, listScenarios } from "@/lib/api/scenarios";
-import { formatPercent } from "@/lib/utils/format";
+import { usePolling } from "@/lib/hooks/use-polling";
 import type { ScenarioRunResponse } from "@/lib/types/api";
 
 const PREDEFINED = [
@@ -25,17 +25,30 @@ export default function ScenariosPage() {
   const params = useParams();
   const portfolioId = params.id as string;
   const [results, setResults] = useState<ScenarioRunResponse[]>([]);
-  const [loading, setLoading] = useState(false);
   const [runningIdx, setRunningIdx] = useState<number | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    listScenarios(portfolioId)
-      .then((data) => setResults(data.scenarios))
-      .catch(() => {})
-      .finally(() => setHistoryLoading(false));
-  }, [portfolioId]);
+  const loadHistory = async (background = false) => {
+    if (!background) {
+      setHistoryLoading(true);
+    }
+
+    try {
+      const data = await listScenarios(portfolioId);
+      setResults(data.scenarios);
+    } catch (err) {
+      if (!background) {
+        setError(err instanceof Error ? err.message : "Failed to load scenarios");
+      }
+    } finally {
+      if (!background) {
+        setHistoryLoading(false);
+      }
+    }
+  };
+
+  usePolling(() => loadHistory(results.length > 0), { enabled: Boolean(portfolioId) });
 
   const handlePredefined = async (index: number) => {
     const scenario = PREDEFINED[index];

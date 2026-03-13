@@ -38,8 +38,17 @@ from app.services.quant_service import (
     compute_var_95,
 )
 from app.services.theme_service import get_sector_exposure, get_theme_exposure
+from app.utils.cache import analytics_cache
 
 router = APIRouter(prefix="/portfolios/{portfolio_id}", tags=["analytics"])
+
+
+def _analytics_cache_key(portfolio) -> str:
+    latest_holding_update = max(
+        (h.updated_at.isoformat() for h in portfolio.holdings),
+        default="no-holdings",
+    )
+    return f"analytics:{portfolio.id}:{portfolio.updated_at.isoformat()}:{latest_holding_update}:{len(portfolio.holdings)}"
 
 
 def _build_analytics(portfolio_id: uuid.UUID, db: Session):
@@ -51,6 +60,11 @@ def _build_analytics(portfolio_id: uuid.UUID, db: Session):
     holdings = portfolio.holdings
     if not holdings:
         raise HTTPException(status_code=400, detail="Portfolio has no holdings")
+
+    cache_key = _analytics_cache_key(portfolio)
+    cached = analytics_cache.get(cache_key)
+    if cached is not None:
+        return cached
 
     tickers = [h.ticker for h in holdings]
 
@@ -103,7 +117,7 @@ def _build_analytics(portfolio_id: uuid.UUID, db: Session):
     cvar_95 = compute_cvar_95(port_returns)
     concentration = compute_concentration_metrics(weights)
 
-    return {
+    analytics = {
         "portfolio": portfolio,
         "holdings": holdings,
         "tickers": tickers,
@@ -123,6 +137,8 @@ def _build_analytics(portfolio_id: uuid.UUID, db: Session):
         "cvar_95": cvar_95,
         "concentration": concentration,
     }
+    analytics_cache.set(cache_key, analytics)
+    return analytics
 
 
 @router.get("/overview", response_model=OverviewResponse)

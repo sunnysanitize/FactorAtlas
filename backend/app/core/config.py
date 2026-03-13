@@ -6,7 +6,10 @@ class Settings(BaseSettings):
 
     APP_ENV: str = "development"
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/factoratlas"
+    AI_PROVIDER: str = "openrouter"
     GEMINI_API_KEY: str = ""
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_MODEL: str = "openrouter/free"
     NEWS_API_KEY: str = ""
     FINNHUB_API_KEY: str = ""
     RISK_FREE_RATE: float = 0.05

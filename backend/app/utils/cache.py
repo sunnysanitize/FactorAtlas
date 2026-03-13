@@ -26,3 +26,4 @@ class TTLCache:
 
 price_cache = TTLCache()
 metadata_cache = TTLCache(ttl=3600)
+analytics_cache = TTLCache()

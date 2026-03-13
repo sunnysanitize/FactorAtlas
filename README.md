@@ -56,79 +56,39 @@ You need:
 - Node.js 20+
 - npm
 - Python 3.12
-- PostgreSQL 15+ or Docker
+- Docker
 
 ## Quick Start
 
-### 1. Start PostgreSQL
-
-If you already have Postgres installed locally, create the DB:
-
-```bash
-createdb factoratlas
-```
-
-If you prefer Docker:
-
-```bash
-docker run --name factoratlas-postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=factoratlas \
-  -p 5432:5432 \
-  -d postgres:16
-```
-
-The backend default connection string expects:
-
-```text
-postgresql://postgres:postgres@localhost:5432/factoratlas
-```
-
-### 2. Configure the backend
+### 1. Configure the backend env
 
 ```bash
 cd backend
 cp .env.example .env
 ```
 
-Edit `backend/.env` if your local database credentials differ.
+Edit `backend/.env` with any API keys you want to use.
 
 Current env vars:
 
 - `APP_ENV`
 - `DATABASE_URL`
+- `AI_PROVIDER`
 - `GEMINI_API_KEY`
+- `OPENROUTER_API_KEY`
+- `OPENROUTER_MODEL`
 - `NEWS_API_KEY`
 - `FINNHUB_API_KEY`
 - `RISK_FREE_RATE`
 - `CACHE_TTL_SECONDS`
 
-### 3. Install backend dependencies
+### 2. Start the backend with Docker
 
 ```bash
-cd backend
-python3.12 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
+docker compose -f docker-compose.backend.yml up --build
 ```
 
-### 4. Create database tables
-
-The repo has an Alembic-ready structure, but it does not yet ship completed migrations. For now, create the tables directly:
-
-```bash
-cd backend
-source .venv/bin/activate
-python -c "from app.db.base import Base; import app.models; from app.db.session import engine; Base.metadata.create_all(bind=engine)"
-```
-
-### 5. Run the backend
-
-```bash
-cd backend
-source .venv/bin/activate
-uvicorn app.main:app --reload
-```
+This starts PostgreSQL and the FastAPI backend together and bootstraps the database tables automatically.
 
 Backend should be available at:
 
@@ -136,7 +96,7 @@ Backend should be available at:
 - Swagger docs: `http://localhost:8000/docs`
 - Health check: `http://localhost:8000/health`
 
-### 6. Configure the frontend
+### 3. Configure the frontend
 
 ```bash
 cd frontend
@@ -149,7 +109,7 @@ Default API base URL:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
-### 7. Install frontend dependencies and run
+### 4. Install frontend dependencies and run
 
 ```bash
 cd frontend
@@ -165,29 +125,34 @@ Frontend should be available at:
 
 Start things in this order:
 
-1. PostgreSQL
-2. backend
-3. frontend
+1. backend Docker stack
+2. frontend
 
-If the frontend loads but portfolio pages fail, the backend is usually not running or the DB has not been initialized.
+If the frontend loads but portfolio pages fail, the backend Docker stack is usually not running yet.
 
 ## Useful Commands
 
 ### Backend
 
-Run API:
+Run backend stack:
 
 ```bash
-cd backend
-source .venv/bin/activate
-uvicorn app.main:app --reload
+docker compose -f docker-compose.backend.yml up --build
 ```
 
-Run tests:
+Stop backend stack:
+
+```bash
+docker compose -f docker-compose.backend.yml down
+```
+
+Run tests locally:
 
 ```bash
 cd backend
+python3.12 -m venv .venv
 source .venv/bin/activate
+pip install -e ".[dev]"
 pytest
 ```
 

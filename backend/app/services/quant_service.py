@@ -131,17 +131,25 @@ def compute_concentration_metrics(weights: dict[str, float]) -> dict:
 
 def compute_correlation_matrix(ticker_returns: dict[str, pd.Series]) -> tuple[list[str], list[list[float]]]:
     """Compute pairwise correlation matrix of daily returns."""
-    df = pd.DataFrame(ticker_returns).dropna()
-    if df.empty or len(df.columns) < 2:
-        tickers = list(ticker_returns.keys())
+    tickers = list(ticker_returns.keys())
+    if not tickers:
+        return [], []
+    if len(tickers) == 1:
+        return tickers, [[1.0]]
+
+    df = pd.DataFrame(ticker_returns)
+    if df.empty:
         n = len(tickers)
         return tickers, [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
 
-    corr = df.corr()
-    tickers = list(corr.columns)
-    matrix = corr.values.tolist()
-    # Replace NaN with 0
-    matrix = [[0.0 if np.isnan(v) else round(v, 4) for v in row] for row in matrix]
+    corr = df.corr(min_periods=5)
+    corr = corr.reindex(index=tickers, columns=tickers)
+
+    for ticker in tickers:
+        corr.loc[ticker, ticker] = 1.0
+
+    matrix = corr.fillna(0.0).values.tolist()
+    matrix = [[round(float(v), 4) for v in row] for row in matrix]
     return tickers, matrix
 
 

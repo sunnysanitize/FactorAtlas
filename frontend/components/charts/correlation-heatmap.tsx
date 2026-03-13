@@ -1,6 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/states/empty-state";
+import { Network } from "lucide-react";
 
 function getColor(value: number): string {
   if (value >= 0.8) return "#1d4ed8";
@@ -21,7 +23,39 @@ export function CorrelationHeatmap({
   tickers: string[];
   matrix: number[][];
 }) {
-  if (!tickers.length || !matrix.length) return null;
+  if (!tickers.length || !matrix.length) {
+    return (
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Correlation Matrix</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EmptyState
+            title="No correlation data yet"
+            description="Add holdings with enough market history to compute correlations."
+            icon={<Network className="h-10 w-10" />}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (tickers.length === 1) {
+    return (
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Correlation Matrix</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EmptyState
+            title="Need at least two holdings"
+            description="Correlations only become meaningful when the portfolio has multiple stocks."
+            icon={<Network className="h-10 w-10" />}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   const cellSize = Math.min(48, Math.max(28, 500 / tickers.length));
 
@@ -57,14 +91,16 @@ export function CorrelationHeatmap({
                 <div
                   key={j}
                   title={`${tickers[i]} / ${tickers[j]}: ${val.toFixed(3)}`}
-                  className="border border-background cursor-pointer"
+                  className="border border-background cursor-pointer flex items-center justify-center text-[10px] font-medium text-white"
                   style={{
                     width: cellSize,
                     height: cellSize,
                     backgroundColor: getColor(val),
                     opacity: 0.9,
                   }}
-                />
+                >
+                  {val.toFixed(2)}
+                </div>
               ))}
             </div>
           ))}

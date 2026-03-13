@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -11,32 +11,49 @@ import { cn } from "@/lib/utils";
 
 type SortKey = keyof HoldingAnalytics;
 
+interface SortHeaderProps {
+  label: string;
+  field: SortKey;
+  onToggle: (field: SortKey) => void;
+}
+
+function SortHeader({ label, field, onToggle }: SortHeaderProps) {
+  return (
+    <th
+      className="px-3 py-2 text-left text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none"
+      onClick={() => onToggle(field)}
+    >
+      <span className="flex items-center gap-1">
+        {label}
+        <ArrowUpDown className="h-3 w-3" />
+      </span>
+    </th>
+  );
+}
+
 export function HoldingsTable({ holdings }: { holdings: HoldingAnalytics[] }) {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("weight");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  const filtered = useMemo(() => {
-    let result = holdings;
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (h) =>
-          h.ticker.toLowerCase().includes(q) ||
-          (h.company_name && h.company_name.toLowerCase().includes(q)) ||
-          (h.sector && h.sector.toLowerCase().includes(q))
-      );
+  let filtered = holdings;
+  if (search) {
+    const q = search.toLowerCase();
+    filtered = filtered.filter(
+      (h) =>
+        h.ticker.toLowerCase().includes(q) ||
+        (h.company_name && h.company_name.toLowerCase().includes(q)) ||
+        (h.sector && h.sector.toLowerCase().includes(q))
+    );
+  }
+  filtered = [...filtered].sort((a, b) => {
+    const av = a[sortKey] ?? 0;
+    const bv = b[sortKey] ?? 0;
+    if (typeof av === "string" && typeof bv === "string") {
+      return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
     }
-    result = [...result].sort((a, b) => {
-      const av = a[sortKey] ?? 0;
-      const bv = b[sortKey] ?? 0;
-      if (typeof av === "string" && typeof bv === "string") {
-        return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
-      }
-      return sortDir === "asc" ? Number(av) - Number(bv) : Number(bv) - Number(av);
-    });
-    return result;
-  }, [holdings, search, sortKey, sortDir]);
+    return sortDir === "asc" ? Number(av) - Number(bv) : Number(bv) - Number(av);
+  });
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -45,18 +62,6 @@ export function HoldingsTable({ holdings }: { holdings: HoldingAnalytics[] }) {
       setSortDir("desc");
     }
   };
-
-  const SortHeader = ({ label, field }: { label: string; field: SortKey }) => (
-    <th
-      className="px-3 py-2 text-left text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none"
-      onClick={() => toggleSort(field)}
-    >
-      <span className="flex items-center gap-1">
-        {label}
-        <ArrowUpDown className="h-3 w-3" />
-      </span>
-    </th>
-  );
 
   return (
     <Card className="bg-card border-border">
@@ -75,14 +80,14 @@ export function HoldingsTable({ holdings }: { holdings: HoldingAnalytics[] }) {
         <table className="w-full text-sm">
           <thead className="border-b border-border">
             <tr>
-              <SortHeader label="Ticker" field="ticker" />
-              <SortHeader label="Shares" field="shares" />
-              <SortHeader label="Avg Cost" field="average_cost" />
-              <SortHeader label="Price" field="current_price" />
-              <SortHeader label="Value" field="market_value" />
-              <SortHeader label="Weight" field="weight" />
-              <SortHeader label="P&L" field="unrealized_gain_loss" />
-              <SortHeader label="Daily" field="daily_return" />
+              <SortHeader label="Ticker" field="ticker" onToggle={toggleSort} />
+              <SortHeader label="Shares" field="shares" onToggle={toggleSort} />
+              <SortHeader label="Avg Cost" field="average_cost" onToggle={toggleSort} />
+              <SortHeader label="Price" field="current_price" onToggle={toggleSort} />
+              <SortHeader label="Value" field="market_value" onToggle={toggleSort} />
+              <SortHeader label="Weight" field="weight" onToggle={toggleSort} />
+              <SortHeader label="P&L" field="unrealized_gain_loss" onToggle={toggleSort} />
+              <SortHeader label="Daily" field="daily_return" onToggle={toggleSort} />
               <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Sector</th>
             </tr>
           </thead>

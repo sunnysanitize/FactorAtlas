@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { CreatePortfolioForm } from "@/components/forms/create-portfolio-form";
 import { LoadingState } from "@/components/states/loading-state";
 import { EmptyState } from "@/components/states/empty-state";
 import { ErrorState } from "@/components/states/error-state";
+import { usePolling } from "@/lib/hooks/use-polling";
 import { listPortfolios } from "@/lib/api/portfolio";
 import { formatDate } from "@/lib/utils/format";
 import type { PortfolioSummary } from "@/lib/types/api";
@@ -21,22 +22,26 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [showCreate, setShowCreate] = useState(false);
 
-  const load = async () => {
-    setLoading(true);
-    setError("");
+  const load = async (background = false) => {
+    if (!background) {
+      setLoading(true);
+      setError("");
+    }
     try {
       const data = await listPortfolios();
       setPortfolios(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load portfolios");
+      if (!background) {
+        setError(err instanceof Error ? err.message : "Failed to load portfolios");
+      }
     } finally {
-      setLoading(false);
+      if (!background) {
+        setLoading(false);
+      }
     }
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  usePolling(() => load(portfolios.length > 0), { enabled: true });
 
   return (
     <div className="min-h-screen bg-background">
