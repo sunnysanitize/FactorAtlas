@@ -6,7 +6,8 @@ import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
+from app.models.user import User
 from app.schemas.analytics import (
     CorrelationMatrixResponse,
     HistoryResponse,
@@ -21,7 +22,7 @@ from app.services.market_data_service import (
     fetch_ticker_metadata,
     fetch_multiple_histories,
 )
-from app.services.portfolio_service import get_portfolio
+from app.services.portfolio_service import get_portfolio_for_user
 from app.services.quant_service import (
     compute_annualized_volatility,
     compute_beta,
@@ -53,9 +54,9 @@ def _analytics_cache_key(portfolio) -> str:
     return f"analytics:{portfolio.id}:{portfolio.updated_at.isoformat()}:{latest_holding_update}:{len(portfolio.holdings)}"
 
 
-def _build_analytics(portfolio_id: uuid.UUID, db: Session):
+def _build_analytics(portfolio_id: uuid.UUID, db: Session, current_user: User):
     """Shared analytics computation used by overview, risk, and history endpoints."""
-    portfolio = get_portfolio(db, portfolio_id)
+    portfolio = get_portfolio_for_user(db, portfolio_id, current_user)
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
 
@@ -144,8 +145,12 @@ def _build_analytics(portfolio_id: uuid.UUID, db: Session):
 
 
 @router.get("/overview", response_model=OverviewResponse)
-def get_overview(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
-    a = _build_analytics(portfolio_id, db)
+def get_overview(
+    portfolio_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    a = _build_analytics(portfolio_id, db, current_user)
 
     # Build holdings analytics
     holdings_analytics = []
@@ -233,8 +238,12 @@ def get_overview(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
 
 
 @router.get("/risk", response_model=RiskResponse)
-def get_risk(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
-    a = _build_analytics(portfolio_id, db)
+def get_risk(
+    portfolio_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    a = _build_analytics(portfolio_id, db, current_user)
 
     risk_contributors = compute_risk_contribution(a["weights"], a["ticker_returns"])
     rolling_vol = compute_rolling_volatility(a["port_returns"])
@@ -257,23 +266,35 @@ def get_risk(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
 
 
 @router.get("/correlations", response_model=CorrelationMatrixResponse)
-def get_correlations(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
-    a = _build_analytics(portfolio_id, db)
+def get_correlations(
+    portfolio_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    a = _build_analytics(portfolio_id, db, current_user)
     tickers, matrix = compute_correlation_matrix(a["ticker_returns"])
     return CorrelationMatrixResponse(tickers=tickers, matrix=matrix)
 
 
 @router.get("/themes", response_model=ThemeExposureResponse)
-def get_themes(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
-    a = _build_analytics(portfolio_id, db)
+def get_themes(
+    portfolio_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    a = _build_analytics(portfolio_id, db, current_user)
     sector_exp = get_sector_exposure(a["holdings"], a["weights"])
     theme_exp = get_theme_exposure(a["holdings"], a["weights"])
     return ThemeExposureResponse(sector_exposure=sector_exp, theme_exposure=theme_exp)
 
 
 @router.get("/history", response_model=HistoryResponse)
-def get_history(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
-    a = _build_analytics(portfolio_id, db)
+def get_history(
+    portfolio_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    a = _build_analytics(portfolio_id, db, current_user)
 
     value_series = []
     daily_series = []

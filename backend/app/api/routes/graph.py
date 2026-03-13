@@ -5,12 +5,13 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
+from app.models.user import User
 from app.schemas.graph import GraphResponse
 from app.services.graph_service import build_graph
 from app.services.market_data_service import fetch_current_price, fetch_multiple_histories
 from app.services.news_service import get_portfolio_events
-from app.services.portfolio_service import get_portfolio
+from app.services.portfolio_service import get_portfolio_for_user
 from app.services.quant_service import compute_correlation_matrix, compute_daily_returns
 import pandas as pd
 
@@ -18,8 +19,12 @@ router = APIRouter(prefix="/portfolios/{portfolio_id}", tags=["graph"])
 
 
 @router.get("/graph", response_model=GraphResponse)
-def get_graph(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
-    portfolio = get_portfolio(db, portfolio_id)
+def get_graph(
+    portfolio_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    portfolio = get_portfolio_for_user(db, portfolio_id, current_user)
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
 

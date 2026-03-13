@@ -1,3 +1,4 @@
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { AppShell } from "@/components/layout/app-shell";
 
 export default async function PortfolioLayout({
@@ -8,5 +9,9 @@ export default async function PortfolioLayout({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <AppShell portfolioId={id}>{children}</AppShell>;
+  return (
+    <AuthGuard>
+      <AppShell portfolioId={id}>{children}</AppShell>
+    </AuthGuard>
+  );
 }

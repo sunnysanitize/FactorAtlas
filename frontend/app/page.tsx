@@ -41,9 +41,14 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-6 py-4 flex items-center justify-between">
         <span className="text-lg font-bold tracking-wider">FACTORATLAS</span>
-        <Link href="/dashboard">
-          <Button variant="outline" size="sm">Open Dashboard</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/auth">
+            <Button variant="outline" size="sm">Log In</Button>
+          </Link>
+          <Link href="/auth">
+            <Button size="sm">Sign Up</Button>
+          </Link>
+        </div>
       </header>
 
       <section className="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
@@ -57,7 +62,7 @@ export default function LandingPage() {
           and AI explanations to reveal the real structure, risks, and drivers of your holdings.
         </p>
         <div className="mt-8">
-          <Link href="/dashboard">
+          <Link href="/auth">
             <Button size="lg">Get Started</Button>
           </Link>
         </div>

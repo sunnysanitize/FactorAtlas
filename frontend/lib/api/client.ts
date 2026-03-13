@@ -1,4 +1,5 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const TOKEN_KEY = "factoratlas.auth.token";
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -9,8 +10,13 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${BASE_URL}${path}`;
+  const token = typeof window === "undefined" ? null : window.localStorage.getItem(TOKEN_KEY);
   const res = await fetch(url, {
-    headers: { "Content-Type": "application/json", ...options.headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
     ...options,
   });
 

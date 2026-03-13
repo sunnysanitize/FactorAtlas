@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/providers/auth-provider";
 
 const navItems = [
   { label: "Overview", href: "", icon: LayoutDashboard },
@@ -30,6 +31,7 @@ const navItems = [
 export function Sidebar({ portfolioId }: { portfolioId: string }) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   const basePath = `/portfolio/${portfolioId}`;
 
   return (
@@ -78,6 +80,14 @@ export function Sidebar({ portfolioId }: { portfolioId: string }) {
           );
         })}
       </nav>
+      {!collapsed && user && (
+        <div className="border-t border-border p-3">
+          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          <Button variant="outline" size="sm" className="mt-2 w-full" onClick={logout}>
+            Log Out
+          </Button>
+        </div>
+      )}
     </aside>
   );
 }

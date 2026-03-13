@@ -5,10 +5,11 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
+from app.models.user import User
 from app.schemas.scenarios import ScenarioRunRequest, ScenarioRunResponse, ScenarioListResponse
 from app.services.market_data_service import fetch_current_price
-from app.services.portfolio_service import get_portfolio
+from app.services.portfolio_service import get_portfolio_for_user
 from app.services.scenario_service import (
     PREDEFINED_SCENARIOS,
     get_scenarios,
@@ -24,8 +25,9 @@ def run_scenario_route(
     portfolio_id: uuid.UUID,
     request: ScenarioRunRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    portfolio = get_portfolio(db, portfolio_id)
+    portfolio = get_portfolio_for_user(db, portfolio_id, current_user)
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
 
@@ -62,8 +64,12 @@ def run_scenario_route(
 
 
 @router.get("/scenarios", response_model=ScenarioListResponse)
-def list_scenarios(portfolio_id: uuid.UUID, db: Session = Depends(get_db)):
-    portfolio = get_portfolio(db, portfolio_id)
+def list_scenarios(
+    portfolio_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    portfolio = get_portfolio_for_user(db, portfolio_id, current_user)
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
 

@@ -6,6 +6,7 @@ class Settings(BaseSettings):
 
     APP_ENV: str = "development"
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/factoratlas"
+    SECRET_KEY: str = "factoratlas-dev-secret-change-me"
     AI_PROVIDER: str = "fallback"
     GEMINI_API_KEY: str = ""
     OPENROUTER_API_KEY: str = ""

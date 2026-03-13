@@ -39,14 +39,39 @@ def create_portfolio(db: Session, data: PortfolioCreate) -> Portfolio:
     return portfolio
 
 
+def create_portfolio_for_user(db: Session, user: User, data: PortfolioCreate) -> Portfolio:
+    portfolio = Portfolio(user_id=user.id, name=data.name)
+    db.add(portfolio)
+    db.commit()
+    db.refresh(portfolio)
+    return portfolio
+
+
 def get_portfolios(db: Session) -> list[Portfolio]:
     """List all portfolios."""
     return db.query(Portfolio).order_by(Portfolio.created_at.desc()).all()
 
 
+def get_portfolios_for_user(db: Session, user: User) -> list[Portfolio]:
+    return (
+        db.query(Portfolio)
+        .filter(Portfolio.user_id == user.id)
+        .order_by(Portfolio.created_at.desc())
+        .all()
+    )
+
+
 def get_portfolio(db: Session, portfolio_id: uuid.UUID) -> Portfolio | None:
     """Get a portfolio by ID."""
     return db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
+
+
+def get_portfolio_for_user(db: Session, portfolio_id: uuid.UUID, user: User) -> Portfolio | None:
+    return (
+        db.query(Portfolio)
+        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == user.id)
+        .first()
+    )
 
 
 def enrich_holding(holding: HoldingCreate) -> HoldingCreate:

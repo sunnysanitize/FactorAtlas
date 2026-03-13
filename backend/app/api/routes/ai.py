@@ -5,11 +5,12 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
+from app.models.user import User
 from app.schemas.ai import CopilotRequest, CopilotResponse
 from app.services.ai_service import ask_copilot
 from app.services.market_data_service import fetch_current_price
-from app.services.portfolio_service import get_portfolio
+from app.services.portfolio_service import get_portfolio_for_user
 from app.services.theme_service import get_sector_exposure, get_theme_exposure
 
 router = APIRouter(prefix="/portfolios/{portfolio_id}", tags=["ai"])
@@ -20,8 +21,9 @@ def copilot_route(
     portfolio_id: uuid.UUID,
     request: CopilotRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    portfolio = get_portfolio(db, portfolio_id)
+    portfolio = get_portfolio_for_user(db, portfolio_id, current_user)
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
 
