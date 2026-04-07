@@ -42,10 +42,10 @@ export default function AuthPage() {
             FACTORATLAS
           </Link>
           <h1 className="mt-6 text-4xl font-bold text-foreground">
-            Secure your portfolios with a real account.
+            Create an account to start using the app.
           </h1>
           <p className="mt-4 text-base text-muted-foreground">
-            Sign up with your email to keep your portfolios tied to your account instead of the shared demo user.
+            This local setup does not create a default login. Use Sign Up first, then Log In with the same email and password.
           </p>
         </div>
 
@@ -79,6 +79,9 @@ export default function AuthPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={submitting || loading}
               />
+              <p className="text-xs text-muted-foreground">
+                No seeded account is included in local dev. Create one with Sign Up before using Log In.
+              </p>
               {error && <p className="text-sm text-destructive">{error}</p>}
               {user && <p className="text-sm text-emerald-500">You are logged in as {user.email}.</p>}
               <Button type="submit" className="w-full" disabled={submitting || loading || !email || password.length < 8}>
